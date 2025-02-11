@@ -1,0 +1,113 @@
+// Establishing variables
+var genre = getColumn("Netflix Content","Genre");
+var type = getColumn("Netflix Content","Type");
+var releaseDate = getColumn("Netflix Content","Release Year");
+var title = getColumn("Netflix Content","Title");
+var myList = [];
+var reviews = [];
+var reviewedShow = [];
+
+// filter to only find TV shows
+var tvShows = [];
+var tvRelease = [];
+var tvGenre = [];
+var genres = ["No Filter"];
+
+for (var i = 0; i < title.length; i++) {
+  if (type[i] === "TV Show"	) {
+    appendItem(tvShows, title[i]);
+    appendItem(tvRelease, releaseDate[i]);
+    appendItem(tvGenre, genre[i]);
+    
+    if (genres.indexOf(genre[i]) === -1) {
+      appendItem(genres, genre[i]); // Collect unique genres
+    }
+  }
+}
+
+// Display list of genres in dropdown
+setProperty("genre_input", "options", genres);
+
+// Display list of all TV shows in dropdown initially
+setProperty("show_list", "options", tvShows);
+
+// Function to update the TV show dropdown based on the selected genre
+function updateShowList(selectedGenre) {
+  var filteredShows = [];
+  for (var i = 0; i < tvShows.length; i++) {
+    if (tvGenre[i] === selectedGenre) {
+      appendItem(filteredShows, tvShows[i]);
+    }
+  }
+  setProperty("show_list", "options", filteredShows);
+}
+
+// Event listener for genre dropdown change
+onEvent("genre_input", "change", function() {
+  var selectedGenre = getProperty("genre_input", "value");
+  updateShowList(selectedGenre);
+});
+
+// Start at the homescreen everytime the user opens the app
+setScreen("screen1");
+
+// start button 
+onEvent("startButton", "click", function( ) {
+  setScreen("screen2");
+});
+
+// Add to watch list button
+onEvent("add_button", "click", function( ) {
+ appendItem(myList,getProperty("show_list","text")); 
+ updateWatchList();
+ updateMyListDropdown();
+
+});
+
+//Displays the users Watchlist in the box.
+function updateWatchList() {
+  setText("Watch_List", myList.join(', '));
+}
+
+updateWatchList();
+
+//Review Buttin to change screen
+onEvent("review_button", "click", function( ) {
+  setScreen("screen3");
+});
+
+
+//back button
+onEvent("Back_button", "click", function( ) {
+  setScreen("screen2");
+});
+
+// Function to update the myList dropdown
+function updateMyListDropdown() {
+  setProperty("myList_Dropdown","options", myList);
+}
+
+// Call updateMyListDropdown initially to set the dropdown options
+updateMyListDropdown();
+ 
+ 
+ 
+ //Write Review for TV show + Stores them into list
+onEvent("Submit_review_button", "click", function( ) {
+  var selectedShow = getText("myList_Dropdown");
+  var reviewText = getText("review_input");
+  setProperty("review_display", "text", reviewText);
+  appendItem(reviews, reviewText);
+  appendItem(reviewedShow, selectedShow);
+});
+
+// Display the review for the selected show from the dropdown
+onEvent("myList_Dropdown", "change", function( ) {
+  var selectedShow = getText("myList_Dropdown");
+  var reviewIndex = reviewedShow.indexOf(selectedShow);
+  if (reviewIndex !== -1) {
+    setProperty("review_display", "text", reviews[reviewIndex]);
+  } else {
+    setProperty("review_display", "text", "");
+  }
+});
